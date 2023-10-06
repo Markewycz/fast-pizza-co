@@ -3,16 +3,27 @@
 import OrderItem from './OrderItem';
 import { useEffect } from 'react';
 import { useFetcher, useLoaderData } from 'react-router-dom';
-import { getOrder } from '../../services/apiRestaurant';
 import {
   calcMinutesLeft,
   formatCurrency,
   formatDate,
 } from '../../utils/helpers';
-import UpdateOrder from './updateOrder';
+import UpdateOrder from './UpdateOrder';
+import { CartItem } from '../cart/cartSlice';
+
+interface OrderObject {
+  cart: CartItem[];
+  customer: string;
+  estimatedDelivery: string;
+  id: string;
+  orderPrice: number;
+  priority: boolean;
+  priorityPrice: number;
+  status: string;
+}
 
 function Order() {
-  const order = useLoaderData();
+  const order = useLoaderData() as OrderObject;
   const fetcher = useFetcher();
 
   useEffect(() => {
@@ -64,10 +75,11 @@ function Order() {
         {cart.map(item => (
           <OrderItem
             item={item}
-            key={item.id}
+            key={item.pizzaId}
             isLoadingIngredients={fetcher.state === 'loading'}
             ingredients={
-              fetcher.data?.find(el => el.id === item.pizzaId).ingredients ?? []
+              fetcher.data?.find((el: { id: number }) => el.id === item.pizzaId)
+                .ingredients ?? []
             }
           />
         ))}
@@ -87,14 +99,9 @@ function Order() {
         </p>
       </div>
 
-      {!priority && <UpdateOrder order={order} />}
+      {!priority && <UpdateOrder />}
     </div>
   );
-}
-
-export async function loader({ params }) {
-  const order = await getOrder(params.orderId);
-  return order;
 }
 
 export default Order;

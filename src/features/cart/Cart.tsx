@@ -1,13 +1,14 @@
 import LinkButton from '../../ui/LinkButton';
 import Button from '../../ui/Button';
 import CartItem from './CartItem';
-import { useDispatch, useSelector } from 'react-redux';
-import { clearCart, getCart, getUsername } from './cartSlice';
+import { useDispatch } from 'react-redux';
+import { Cart as CartType, clearCart, getCart, getUsername } from './cartSlice';
 import EmptyCart from './EmptyCart';
+import { useAppSelector } from '../../utils/hooks';
 
 function Cart() {
-  const username = useSelector(getUsername);
-  const cart = useSelector(getCart);
+  const username = useAppSelector(getUsername);
+  const cart: CartType = useAppSelector(getCart);
   const dispatch = useDispatch();
 
   if (!cart.length) return <EmptyCart />;

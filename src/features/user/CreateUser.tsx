@@ -9,7 +9,7 @@ function CreateUser() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  function handleSubmit(e) {
+  function handleSubmit(e: { preventDefault: () => void; }) {
     e.preventDefault();
 
     if (!username) return;

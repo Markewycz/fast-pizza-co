@@ -1,14 +1,20 @@
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import Button from '../../ui/Button';
 import { formatCurrency } from '../../utils/helpers';
 import { addItem, getCurrentQuantityById } from '../cart/cartSlice';
-import DeleteItem from '../cart/deleteItem';
+import DeleteItem from '../cart/DeleteItem';
 import UpdateItemQuantity from '../cart/UpdateItemQuantity';
+import { MenuData } from '../../services/apiRestaurant';
+import { useAppSelector } from '../../utils/hooks';
 
-function MenuItem({ pizza }) {
+interface Pizza {
+  pizza: MenuData;
+}
+
+function MenuItem({ pizza }: Pizza) {
   const dispatch = useDispatch();
   const { id, name, unitPrice, ingredients, soldOut, imageUrl } = pizza;
-  const currentQuantity = useSelector(getCurrentQuantityById(id));
+  const currentQuantity = useAppSelector(getCurrentQuantityById(id));
   const isInCart = currentQuantity > 0;
 
   function handleAddToCart() {

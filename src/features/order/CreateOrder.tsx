@@ -1,34 +1,32 @@
 import { useState } from 'react';
-import { Form, redirect, useActionData, useNavigation } from 'react-router-dom';
-import { createOrder } from '../../services/apiRestaurant';
+import { Form, useActionData, useNavigation } from 'react-router-dom';
 import Button from '../../ui/Button';
-import { useDispatch, useSelector } from 'react-redux';
-import { clearCart, getCart, getTotalCartPrice } from '../cart/cartSlice';
+import { getCart, getTotalCartPrice } from '../cart/cartSlice';
 import EmptyCart from '../cart/EmptyCart';
-import store from '../../store';
 import { formatCurrency } from '../../utils/helpers';
 import { fetchAddress } from '../user/userSlice';
+import { useAppDispatch, useAppSelector } from '../../utils/hooks';
 
-// https://uibakery.io/regex-library/phone-number
-const isValidPhone = str =>
-  /^\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}$/.test(
-    str,
-  );
+interface Position {
+  latitude?: number;
+  longitude?: number;
+}
 
 function CreateOrder() {
   const [withPriority, setWithPriority] = useState(false);
-  const cart = useSelector(getCart);
-  const dispatch = useDispatch();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const formErrors: any = useActionData();
+  const dispatch = useAppDispatch();
+  const totalCartPrice = useAppSelector(getTotalCartPrice);
+  const cart = useAppSelector(getCart);
   const navigation = useNavigation();
-  const formErrors = useActionData();
-  const totalCartPrice = useSelector(getTotalCartPrice);
   const {
     username,
     status: addressStatus,
-    position,
     address,
     error: addressError,
-  } = useSelector(state => state.user);
+  } = useAppSelector(state => state.user);
+  const position: Position = useAppSelector(state => state.user.position);
 
   const isLoadingAddress = addressStatus === 'loading';
   const isSubmitting = navigation.state === 'submitting';
@@ -41,7 +39,6 @@ function CreateOrder() {
     <div className="px-4 py-6">
       <h2 className="mb-8 text-xl font-semibold">Ready to order? Let's go!</h2>
 
-      {/* <Form method="POST" action="/order/new"> */}
       <Form method="POST">
         <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center">
           <label className="sm:basis-40">First Name</label>
@@ -83,7 +80,7 @@ function CreateOrder() {
               </p>
             )}
           </div>
-          {!position.lattitude && !position.longitude && (
+          {!position.latitude && !position.longitude && (
             <span className="absolute right-[3px] top-[3px] md:right-[5px] md:top-[5px]">
               <Button
                 disabled={isLoadingAddress}
@@ -105,7 +102,7 @@ function CreateOrder() {
             type="checkbox"
             name="priority"
             id="priority"
-            value={withPriority}
+            value={withPriority ? 'true' : 'false'}
             onChange={e => setWithPriority(e.target.checked)}
           />
           <label htmlFor="priority" className="font-medium">
@@ -133,32 +130,6 @@ function CreateOrder() {
       </Form>
     </div>
   );
-}
-
-export async function action({ request }) {
-  const formData = await request.formData();
-  const data = Object.fromEntries(formData);
-
-  const order = {
-    ...data,
-    cart: JSON.parse(data.cart),
-    priority: data.priority === 'true',
-  };
-
-  const errors = {};
-  if (!isValidPhone(order.phone))
-    errors.phone =
-      'Please give us your correct phone number. We might need it to contact you.';
-
-  if (Object.keys(errors).length > 0) return errors;
-
-  // If everything is okay, create new order and redirect
-
-  const newOrder = await createOrder(order);
-
-  store.dispatch(clearCart());
-
-  return redirect(`/order/${newOrder.id}`);
 }
 
 export default CreateOrder;

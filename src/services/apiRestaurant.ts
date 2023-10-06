@@ -1,16 +1,34 @@
+import { Cart } from '../features/cart/cartSlice';
+
 const API_URL = 'https://react-fast-pizza-api.onrender.com/api';
 
-export async function getMenu() {
-  const res = await fetch(`${API_URL}/menu`);
+export interface MenuData {
+  id: number;
+  imageUrl: string;
+  ingredients: string[];
+  name: string;
+  soldOut: boolean;
+  unitPrice: number;
+}
 
-  // fetch won't throw error on 400 errors (e.g. when URL is wrong), so we need to do it manually. This will then go into the catch block, where the message is set
+export interface NewOrder {
+  cart: Cart[];
+  address: string;
+  customer: string;
+  phone: string;
+  position: string;
+  priority: boolean;
+}
+
+export async function getMenu(): Promise<MenuData[]> {
+  const res = await fetch(`${API_URL}/menu`);
   if (!res.ok) throw Error('Failed getting menu');
 
   const { data } = await res.json();
   return data;
 }
 
-export async function getOrder(id) {
+export async function getOrder(id: string) {
   const res = await fetch(`${API_URL}/order/${id}`);
   if (!res.ok) throw Error(`Couldn't find order #${id}`);
 
@@ -18,7 +36,8 @@ export async function getOrder(id) {
   return data;
 }
 
-export async function createOrder(newOrder) {
+export async function createOrder(newOrder: NewOrder) {
+  console.log(newOrder)
   try {
     const res = await fetch(`${API_URL}/order`, {
       method: 'POST',
@@ -36,7 +55,10 @@ export async function createOrder(newOrder) {
   }
 }
 
-export async function updateOrder(id, updateObj) {
+export async function updateOrder(
+  id: string,
+  updateObj: { priority: boolean },
+) {
   try {
     const res = await fetch(`${API_URL}/order/${id}`, {
       method: 'PATCH',
@@ -47,7 +69,6 @@ export async function updateOrder(id, updateObj) {
     });
 
     if (!res.ok) throw Error();
-    // We don't need the data, so we don't return anything
   } catch (err) {
     throw Error('Failed updating your order');
   }
